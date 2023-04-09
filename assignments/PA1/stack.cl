@@ -131,7 +131,7 @@ class Main inherits IO {
       while (not (c = "x")) 
         loop {
           if c = "e" then {
-            e = chooseExecutor();
+            e <- chooseExecutor();
             e.execute(s);
           } else if c = "d" then {
             s.print_list();
