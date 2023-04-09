@@ -1,10 +1,6 @@
 (*
- *  CS164 Fall 94
- *
  *  Programming Assignment 1
  *    Implementation of a simple stack machine.
- *
- *  Skeleton file
  *)
 
  Class List inherits IO { 
@@ -57,18 +53,18 @@ Class Nil inherits List {
 };
 
 Class Stack {
-  l: list <- new Nil;
+  l: List <- new Nil;
 
   push(x: String) : Stack {
     {
       l <- l.cons(x);
       self;
     }
-  }
+  };
 
   peek() : String {
     l.car()
-  }
+  };
 
   pop() : String {
     (let x : String in {
@@ -76,24 +72,24 @@ Class Stack {
       l <- l.cdr();
       x;
     })
-  }
+  };
 
   empty() : Bool {
     l.isNil()
-  }
-}
+  };
+};
 
 class Main inherits IO {
-  s : Stack;
+  s : Stack <- new Stack;
 
-   main() : Object {
-      {
-        s.push(1).push(2).push(3).pop();
-        while (not s.empty()) 
-          loop {
-            out_string(s.pop());
-            out_string("\n");
-          } pool;
-      }
-   };
+  main() : Object {
+    {
+      s.push("1").push("2").push("3").pop();
+      while (not s.empty()) 
+        loop {
+          out_string(s.pop());
+          out_string("\n");
+        } pool;
+    }
+  };
 };
