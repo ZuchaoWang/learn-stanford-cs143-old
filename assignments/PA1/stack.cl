@@ -77,18 +77,70 @@ Class Stack {
   empty() : Bool {
     l.isNil()
   };
+
+  print_list() : Object {
+    l.print_list()
+  };
+};
+
+class Executor inherits IO {
+  execute(s: Stack) : Object { { abort(); true; } };
+};
+
+class AddExecutor inherits Executor {
+  a2i: A2I <- new A2I;
+  execute(s: Stack) : Object {
+    let plus : String <- s.pop(),
+      operand1 : String <- s.pop(),
+      operand2 : String <- s.pop() in
+        s.push(a2i.i2a(a2i.a2i(operand1) + a2i.a2i(operand2)))
+  };
+};
+
+class SwapExecutor inherits Executor {
+  execute(s: Stack) : Object {
+    let plus : String <- s.pop(),
+        operand1 : String <- s.pop(),
+        operand2 : String <- s.pop() in
+          s.push(operand1).push(operand2)
+  };
+};
+
+class DummyExecutor inherits Executor {
+  execute(s: Stack) : Object { true };
 };
 
 class Main inherits IO {
+  c : String; -- command
+  e: Executor;
   s : Stack <- new Stack;
+
+  chooseExecutor() : Executor {
+    let cc : String <- s.peek() in {
+      if cc = "+" then new AddExecutor else
+        if cc = "s" then new SwapExecutor else
+          new DummyExecutor
+        fi fi;
+    }
+  };
 
   main() : Object {
     {
-      s.push("1").push("2").push("3").pop();
-      while (not s.empty()) 
+      out_string(">");
+      c <- in_string();
+      while (not (c = "x")) 
         loop {
-          out_string(s.pop());
-          out_string("\n");
+          if c = "e" then {
+            e = chooseExecutor();
+            e.execute(s);
+          } else if c = "d" then {
+            s.print_list();
+          } else {
+            s.push(c);
+          }
+          fi fi;
+          out_string(">");
+          c <- in_string();
         } pool;
     }
   };
