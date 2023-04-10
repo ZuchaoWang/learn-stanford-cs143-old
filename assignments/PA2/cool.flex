@@ -49,25 +49,59 @@ extern YYSTYPE cool_yylval;
  * Define names for regular expressions here.
  */
 
+ASSIGN          <-
 DARROW          =>
+LE              <=
+COMMENT1        --.*
+TRUE            t[Rr][Uu][Ee]
+FALSE           f[Aa][Ll][Ss][Ee]
+SPACE           [ \t\f]+
 
 %%
+
+ /*
+  *  Space
+  */
+
+{SPACE}     {}
 
  /*
   *  Nested comments
   */
 
+ /*
+  *  Single-line comment
+  */
+
+{COMMENT1}  {}
+
+ /*
+  *  The single-character operators.
+  */
+
+"+"         { return '+'; }
+"-"         { return '-'; }
+"*"         { return '*'; }
+"/"         { return '/'; }
+"="         { return '='; }
+"~"         { return '~'; }
+"."         { return '.'; }
+"@"         { return '@'; }
 
  /*
   *  The multiple-character operators.
   */
+{ASSIGN}		{ return (ASSIGN); }
 {DARROW}		{ return (DARROW); }
+{LE}		    { return (LE); }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
 
+{TRUE}      { yylval.boolean = true; return (BOOL_CONST); }
+{FALSE}     { yylval.boolean = false; return (BOOL_CONST); }
 
  /*
   *  String constants (C syntax)
