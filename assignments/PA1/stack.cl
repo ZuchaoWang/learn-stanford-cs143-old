@@ -116,12 +116,14 @@ class Main inherits IO {
   s : Stack <- new Stack;
 
   chooseExecutor() : Executor {
-    let cc : String <- s.peek() in {
-      if cc = "+" then new AddExecutor else
-        if cc = "s" then new SwapExecutor else
-          new DummyExecutor
-        fi fi;
-    }
+    if s.empty() then new DummyExecutor else
+      let cc : String <- s.peek() in {
+        if cc = "+" then new AddExecutor else
+          if cc = "s" then new SwapExecutor else
+            new DummyExecutor
+          fi fi;
+      }
+    fi
   };
 
   main() : Object {
