@@ -43,7 +43,11 @@ extern YYSTYPE cool_yylval;
  *  Add Your own definitions here
  */
 
+int comment2_nesting = 0;
+
 %}
+
+%x COMMENT2
 
 /*
  * Define names for regular expressions here.
@@ -52,10 +56,31 @@ extern YYSTYPE cool_yylval;
 ASSIGN          <-
 DARROW          =>
 LE              <=
+
+SPACE           [ \t\f]+
 COMMENT1        --.*
+COMMENT2START   "(*"
+COMMENT2END     "*)"
+
+ELSE            [Ee][Ll][Ss][Ee]
+FI              [Ff][Ii]
+IF              [Ii][Ff]
+IN              [Ii][Nn]
+INHERITS        [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss]
+LET             [Ll][Ee][Tt]
+LOOP            [Ll][Oo][Oo][Pp]
+POOL            [Pp][Oo][Oo][Ll]
+THEN            [Tt][Hh][Ee][Nn]
+WHILE           [Ww][Hh][Ii][Ll][Ee]
+CASE            [Cc][Aa][Ss][Ee]
+ESAC            [Ee][Ss][Aa][Cc]
+OF              [Oo][Ff]
+NEW             [Nn][Ee][Ww]
+ISVOID          [Ii][Ss][Vv][Oo][Ii][Dd]
+NOT             [Nn][Oo][Tt]
+
 TRUE            t[Rr][Uu][Ee]
 FALSE           f[Aa][Ll][Ss][Ee]
-SPACE           [ \t\f]+
 
 %%
 
@@ -63,11 +88,20 @@ SPACE           [ \t\f]+
   *  Space
   */
 
-{SPACE}     {}
+{SPACE}         {}
 
  /*
   *  Nested comments
   */
+
+COMMENT2START   { comment2_nesting = 1; BEGIN(COMMENT); }
+
+<COMMENT2>{
+  COMMENT2START { ++comment2_nesting; }
+  COMMENT2END   { if (--comment2_nesting == 0) BEGIN(INITIAL); }
+  .             {}
+  \n            { curr_lineno++; }
+}
 
  /*
   *  Single-line comment
@@ -79,14 +113,14 @@ SPACE           [ \t\f]+
   *  The single-character operators.
   */
 
-"+"         { return '+'; }
-"-"         { return '-'; }
-"*"         { return '*'; }
-"/"         { return '/'; }
-"="         { return '='; }
-"~"         { return '~'; }
-"."         { return '.'; }
-"@"         { return '@'; }
+"+"             { return '+'; }
+"-"             { return '-'; }
+"*"             { return '*'; }
+"/"             { return '/'; }
+"="             { return '='; }
+"~"             { return '~'; }
+"."             { return '.'; }
+"@"             { return '@'; }
 
  /*
   *  The multiple-character operators.
@@ -99,6 +133,23 @@ SPACE           [ \t\f]+
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
+
+{ELSE}      { return (ELSE); }
+{FI}        { return (FI); }
+{IF}        { return (IF); }
+{IN}        { return (IN); }
+{INHERITS}  { return (INHERITS); }
+{LET}       { return (LET); }
+{LOOP}      { return (LOOP); }
+{POOL}      { return (POOL); }
+{THEN}      { return (THEN); }
+{WHILE}     { return (WHILE); }
+{CASE}      { return (CASE); }
+{ESAC}      { return (ESAC); }
+{OF}        { return (OF); }
+{NEW}       { return (NEW); }
+{ISVOID}    { return (ISVOID); }
+{NOT}       { return (NOT); }
 
 {TRUE}      { yylval.boolean = true; return (BOOL_CONST); }
 {FALSE}     { yylval.boolean = false; return (BOOL_CONST); }
