@@ -49,6 +49,7 @@ extern StrTable stringtable;
 
 int comment2_nesting = 0;
 
+int make_error(char* msg);
 %}
 
 %x COMMENT2
@@ -90,11 +91,6 @@ FALSE               f[Aa][Ll][Ss][Ee]
 INT_CONST           [0-9]+
 OBJECTID            [a-z][a-zA-Z0-9_]*
 TYPEID              [A-Z][a-zA-Z0-9_]*
-STR_CONST           \"([^\\\"\n]|\\.)*\"
-STR_CONST_NEWLINE   \"([^\\\"\n]|\\.)*\n
-STR_CONST_EOF       \"([^\\\"\n]|\\.)*<<EOF>>
-STR_CHAR            [^\\\"\n\0]
-STR_ESCAPE          \\.
 
 %%
 
@@ -124,7 +120,7 @@ STR_ESCAPE          \\.
   {COMMENT2END}     { if (--comment2_nesting == 0) BEGIN(INITIAL); }
   .                 {}
   \n                { curr_lineno++; }
-  <<EOF>>           { return make_error("EOF in comment"); }
+  <<EOF>>           { BEGIN(INITIAL); return make_error("EOF in comment"); }
 }
 
  /*
@@ -215,19 +211,26 @@ STR_ESCAPE          \\.
 
 \"                  { string_buf_ptr = string_buf; BEGIN(STRING); }
 <STRING>{
-  {STR_CHAR}        {
-    string_buf_ptr = yytext[0];
+  [^\\\"\n\0]       {
+    *string_buf_ptr = yytext[0];
     string_buf_ptr++;
     if (string_buf_ptr - string_buf == MAX_STR_CONST) return make_error("String constant too long");
   }
-  {STR_ESCAPE}      {
-    string_buf_ptr = yytext[1];
+  \\.               {
+    switch(yytext[1]) {
+      case 'n': *string_buf_ptr = '\n'; break;
+      case 't': *string_buf_ptr = '\t'; break;
+      case 'b': *string_buf_ptr = '\b'; break;
+      case 'f': *string_buf_ptr = '\f'; break;
+      case '0': *string_buf_ptr = '\0'; break;
+      default: *string_buf_ptr = yytext[1]; break;
+    }
     string_buf_ptr++;
     if (string_buf_ptr - string_buf == MAX_STR_CONST) return make_error("String constant too long");
   }
   \"                {
     BEGIN(INITIAL);
-    string_buf_ptr = '\0';
+    *string_buf_ptr = '\0';
     Symbol s = stringtable.add_string(string_buf, string_buf_ptr-string_buf);
     yylval.symbol = s;
     return (STR_CONST);
@@ -236,48 +239,6 @@ STR_ESCAPE          \\.
   \0                { BEGIN(INITIAL); return make_error("String contains null character"); }
   <<EOF>>           { BEGIN(INITIAL); return make_error("EOF in string constant"); }
 }
-
-{STR_CONST}         {
-  int i = 1; // input index
-  int j = 0; // output index
-  while (i < yyleng - 1) {
-    if (yytext[i] == '\0') {
-      return make_error("String contains null character");
-    } else if (j == MAX_STR_CONST - 1) {
-      return make_error("String constant too long");
-    } else {
-      if (yytext[i] == '\\') {
-        i++;
-        switch (yytext[i]) {
-          case 'n':
-            string_buf[j++] = '\n';
-            break;
-          case 't':
-            string_buf[j++] = '\t';
-            break;
-          case 'b':
-            string_buf[j++] = '\b';
-            break;
-          case 'f':
-            string_buf[j++] = '\f';
-            break;
-          default:
-            string_buf[j++] = yytext[i];
-        }
-      } else {
-        string_buf[j++] = yytext[i];
-      }
-      i++;
-    }
-  }
-  string_buf[j] = '\0';
-  Symbol s = stringtable.add_string(string_buf, j);
-  yylval.symbol = s;
-  return (STR_CONST);
-}
-
-{STR_CONST_NEWLINE} { return make_error("Unterminated string constant"); }
-{STR_CONST_EOF}     { return make_error("EOF in string constant"); }
 
  /* 
   *  Unmatched characters
