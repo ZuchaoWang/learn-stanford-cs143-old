@@ -63,7 +63,7 @@ ASSIGN              <-
 DARROW              =>
 LE                  <=
 
-SPACE               [ \t\f]+
+SPACE               [ \t\f\v\r]+
 COMMENT1            --.*
 COMMENT2START       "(*"
 COMMENT2END         "*)"
