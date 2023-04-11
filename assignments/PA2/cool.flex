@@ -57,39 +57,39 @@ int comment2_nesting = 0;
  * Define names for regular expressions here.
  */
 
-ASSIGN          <-
-DARROW          =>
-LE              <=
+ASSIGN              <-
+DARROW              =>
+LE                  <=
 
-SPACE           [ \t\f]+
-COMMENT1        --.*
-COMMENT2START   "(*"
-COMMENT2END     "*)"
+SPACE               [ \t\f]+
+COMMENT1            --.*
+COMMENT2START       "(*"
+COMMENT2END         "*)"
 
-ELSE            [Ee][Ll][Ss][Ee]
-FI              [Ff][Ii]
-IF              [Ii][Ff]
-IN              [Ii][Nn]
-INHERITS        [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss]
-LET             [Ll][Ee][Tt]
-LOOP            [Ll][Oo][Oo][Pp]
-POOL            [Pp][Oo][Oo][Ll]
-THEN            [Tt][Hh][Ee][Nn]
-WHILE           [Ww][Hh][Ii][Ll][Ee]
-CASE            [Cc][Aa][Ss][Ee]
-ESAC            [Ee][Ss][Aa][Cc]
-OF              [Oo][Ff]
-NEW             [Nn][Ee][Ww]
-ISVOID          [Ii][Ss][Vv][Oo][Ii][Dd]
-NOT             [Nn][Oo][Tt]
+ELSE                [Ee][Ll][Ss][Ee]
+FI                  [Ff][Ii]
+IF                  [Ii][Ff]
+IN                  [Ii][Nn]
+INHERITS            [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss]
+LET                 [Ll][Ee][Tt]
+LOOP                [Ll][Oo][Oo][Pp]
+POOL                [Pp][Oo][Oo][Ll]
+THEN                [Tt][Hh][Ee][Nn]
+WHILE               [Ww][Hh][Ii][Ll][Ee]
+CASE                [Cc][Aa][Ss][Ee]
+ESAC                [Ee][Ss][Aa][Cc]
+OF                  [Oo][Ff]
+NEW                 [Nn][Ee][Ww]
+ISVOID              [Ii][Ss][Vv][Oo][Ii][Dd]
+NOT                 [Nn][Oo][Tt]
 
-TRUE            t[Rr][Uu][Ee]
-FALSE           f[Aa][Ll][Ss][Ee]
+TRUE                t[Rr][Uu][Ee]
+FALSE               f[Aa][Ll][Ss][Ee]
 
-INT_CONST       [0-9]+
-OBJECTID        [a-z][a-zA-Z0-9_]*
-TYPEID          [A-Z][a-zA-Z0-9_]*
-STRING_CONST    \"([^\\\"\n]|\\[^n])*\"
+INT_CONST           [0-9]+
+OBJECTID            [a-z][a-zA-Z0-9_]*
+TYPEID              [A-Z][a-zA-Z0-9_]*
+STR_CONST           \"([^\\\"\n]|\\.)*\"
 
 %%
 
@@ -97,85 +97,93 @@ STRING_CONST    \"([^\\\"\n]|\\[^n])*\"
   *  Space
   */
 
-{SPACE}         {}
-\n              { curr_lineno++; }
+{SPACE}             {}
+\n                  { curr_lineno++; }
 
 
  /*
   *  Single-line comment
   */
 
-{COMMENT1}  {}
+{COMMENT1}          {}
 
  /*
   *  Nested comments
   */
 
-COMMENT2START   { comment2_nesting = 1; BEGIN(COMMENT); }
+{COMMENT2START}     { comment2_nesting = 1; BEGIN(COMMENT2); }
 
 <COMMENT2>{
-  COMMENT2START { ++comment2_nesting; }
-  COMMENT2END   { if (--comment2_nesting == 0) BEGIN(INITIAL); }
-  .             {}
-  \n            { curr_lineno++; }
+  {COMMENT2START}   { ++comment2_nesting; }
+  {COMMENT2END}     { if (--comment2_nesting == 0) BEGIN(INITIAL); }
+  .                 {}
+  \n                { curr_lineno++; }
 }
 
  /*
   *  The single-character operators.
   */
 
-"+"             { return '+'; }
-"-"             { return '-'; }
-"*"             { return '*'; }
-"/"             { return '/'; }
-"="             { return '='; }
-"~"             { return '~'; }
-"."             { return '.'; }
-"@"             { return '@'; }
+"+"                 { return '+'; }
+"-"                 { return '-'; }
+"*"                 { return '*'; }
+"/"                 { return '/'; }
+"<"                 { return '<'; }
+"="                 { return '='; }
+"~"                 { return '~'; }
+","                 { return ','; }
+"."                 { return '.'; }
+"@"                 { return '@'; }
+"{"                 { return '{'; }
+"}"                 { return '}'; }
+"("                 { return '('; }
+")"                 { return ')'; }
+":"                 { return ':'; }
+";"                 { return ';'; }
 
  /*
   *  The multiple-character operators.
   */
-{ASSIGN}        { return (ASSIGN); }
-{DARROW}        { return (DARROW); }
-{LE}            { return (LE); }
+{ASSIGN}            { return (ASSIGN); }
+{DARROW}            { return (DARROW); }
+{LE}                { return (LE); }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
 
-{ELSE}          { return (ELSE); }
-{FI}            { return (FI); }
-{IF}            { return (IF); }
-{IN}            { return (IN); }
-{INHERITS}      { return (INHERITS); }
-{LET}           { return (LET); }
-{LOOP}          { return (LOOP); }
-{POOL}          { return (POOL); }
-{THEN}          { return (THEN); }
-{WHILE}         { return (WHILE); }
-{CASE}          { return (CASE); }
-{ESAC}          { return (ESAC); }
-{OF}            { return (OF); }
-{NEW}           { return (NEW); }
-{ISVOID}        { return (ISVOID); }
-{NOT}           { return (NOT); }
+{ELSE}              { return (ELSE); }
+{FI}                { return (FI); }
+{IF}                { return (IF); }
+{IN}                { return (IN); }
+{INHERITS}          { return (INHERITS); }
+{LET}               { return (LET); }
+{LOOP}              { return (LOOP); }
+{POOL}              { return (POOL); }
+{THEN}              { return (THEN); }
+{WHILE}             { return (WHILE); }
+{CASE}              { return (CASE); }
+{ESAC}              { return (ESAC); }
+{OF}                { return (OF); }
+{NEW}               { return (NEW); }
+{ISVOID}            { return (ISVOID); }
+{NOT}               { return (NOT); }
 
-{TRUE}          { yylval.boolean = true; return (BOOL_CONST); }
-{FALSE}         { yylval.boolean = false; return (BOOL_CONST); }
+{TRUE}              { yylval.boolean = true; return (BOOL_CONST); }
+{FALSE}             { yylval.boolean = false; return (BOOL_CONST); }
 
  /*
   *  Indetifiers must be after keywords
   */
 
-{OBJECTID}      {
+{OBJECTID}          {
   Symbol s = idtable.add_string(yytext, yyleng);
   yylval.symbol = s;
   return (OBJECTID);
 }
 
-{TYPEID}      {
+{TYPEID}            {
   Symbol s = idtable.add_string(yytext, yyleng);
   yylval.symbol = s;
   return (TYPEID);
@@ -185,7 +193,7 @@ COMMENT2START   { comment2_nesting = 1; BEGIN(COMMENT); }
   *  Non-negative Integer constants
   */
 
-{INT_CONST}     {
+{INT_CONST}         {
   Symbol s = inttable.add_string(yytext, yyleng);
   yylval.symbol = s;
   return (INT_CONST);
@@ -198,17 +206,16 @@ COMMENT2START   { comment2_nesting = 1; BEGIN(COMMENT); }
   *
   */
 
-{STRING_CONST}  {
+{STR_CONST}         {
   int i = 1; // input index
   int j = 0; // output index
   while (i < yyleng - 1) {
     if (yytext[i] == '\\') {
       i++;
       switch (yytext[i]) {
-        // should not see \n
-        // case 'n':
-        //  string_buf[j++] = '\n';
-        //  break;
+        case 'n':
+          string_buf[j++] = '\n';
+          break;
         case 't':
           string_buf[j++] = '\t';
           break;
@@ -227,9 +234,9 @@ COMMENT2START   { comment2_nesting = 1; BEGIN(COMMENT); }
     i++;
   }
   string_buf[j] = '\0';
-  Symbol s = string.add_string(string_buf, j);
+  Symbol s = stringtable.add_string(string_buf, j);
   yylval.symbol = s;
-  return (STRING_CONST);
+  return (STR_CONST);
 }
 
 %%
