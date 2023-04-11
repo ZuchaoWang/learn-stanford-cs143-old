@@ -68,6 +68,7 @@ COMMENT1            --.*
 COMMENT2START       "(*"
 COMMENT2END         "*)"
 
+CLASS               [Cc][Ll][Aa][Ss][Ss]
 ELSE                [Ee][Ll][Ss][Ee]
 FI                  [Ff][Ii]
 IF                  [Ii][Ff]
@@ -156,6 +157,7 @@ TYPEID              [A-Z][a-zA-Z0-9_]*
   * which must begin with a lower-case letter.
   */
 
+{CLASS}             { return (CLASS); }
 {ELSE}              { return (ELSE); }
 {FI}                { return (FI); }
 {IF}                { return (IF); }
