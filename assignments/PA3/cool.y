@@ -135,7 +135,8 @@
     %type <class_> class
     
     /* You will want to change the following line. */
-    %type <features> dummy_feature_list
+    %type <features> feature_list
+    %type <feature> feature
     
     /* Precedence declarations go here. */
     
@@ -157,17 +158,26 @@
     ;
     
     /* If no parent is specified, the class inherits from the Object class. */
-    class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
+    class	: CLASS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,idtable.add_string("Object"),$4,
     stringtable.add_string(curr_filename)); }
-    | CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
+    | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
     ;
     
-    /* Feature list may be empty, but no empty features in list. */
-    dummy_feature_list:		/* empty */
-    {  $$ = nil_Features(); }
+    /* following are added by student */
+
+    feature_list
+    : /* empty feature */
+    { $$ = nil_Features(); }
+    | feature_list feature ';'	/* one or several features */
+    { $$ = append_Features($1,single_Features($2)); }
+    ;
     
+    feature
+    : OBJECTID ':' TYPEID  /* attribute */
+    { $$ = attr($1,$3,no_expr()); }
+    ;
     
     /* end of grammar */
     %%
