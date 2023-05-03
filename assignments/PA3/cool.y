@@ -155,7 +155,7 @@
     %left '*' '/'
     %right ISVOID
     %right '~'
-    %left '@'
+    %nonassoc '@'
     %left '.'
     
     %%
@@ -189,19 +189,21 @@
     feature_list
     :
     { $$ = nil_Features(); }
-    | feature_list feature ';'
+    | feature_list feature
     { $$ = append_Features($1,single_Features($2)); }
     ;
     
     feature
-    : OBJECTID ':' TYPEID
+    : OBJECTID ':' TYPEID ';'
     { $$ = attr($1,$3,no_expr()); }
-    | OBJECTID ':' TYPEID ASSIGN expression
+    | OBJECTID ':' TYPEID ASSIGN expression ';'
     { $$ = attr($1,$3,$5); }
-    | OBJECTID '(' ')' ':' TYPEID '{' expression '}'
+    | OBJECTID '(' ')' ':' TYPEID '{' expression '}' ';'
     { $$ = method($1,nil_Formals(),$5,$7); }
-    | OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}'
+    | OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
     { $$ = method($1,$3,$6,$8); }
+    | error ';'
+    { }
     ;
 
     formal_list
@@ -266,7 +268,7 @@
     | expression '/' expression
     { $$ = divide($1,$3); }
     | '~' expression
-    { $$ = sub(int_const(inttable.add_string("0")),$2); }
+    { $$ = neg($2); }
     | expression '<' expression
     { $$ = lt($1,$3); }
     | expression LE expression
@@ -274,9 +276,9 @@
     | expression '=' expression
     { $$ = eq($1,$3); }
     | NOT expression
-    { $$ = neg($2); }
-    | '(' expression ')'
     { $$ = comp($2); }
+    | '(' expression ')'
+    { $$ = $2; }
     | OBJECTID
     { $$ = object($1); }
     | INT_CONST
@@ -285,6 +287,8 @@
     { $$ = string_const($1); }
     | BOOL_CONST
     { $$ = bool_const($1); }
+    | error ';'
+    { }
     ;
 
     expressions
@@ -292,8 +296,6 @@
     { $$ = nil_Expressions(); }
     | expressions expression ';'
     { $$ = append_Expressions($1,single_Expressions($2)); }
-    | error ';'
-    { }
     ;
 
     arguments
