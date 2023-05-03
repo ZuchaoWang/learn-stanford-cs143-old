@@ -180,7 +180,7 @@
     { $$ = class_($2,idtable.add_string("Object"),$4, stringtable.add_string(curr_filename)); }
     | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
-    | error ';'
+    | error
     { }
     ;
     
@@ -202,7 +202,7 @@
     { $$ = method($1,nil_Formals(),$5,$7); }
     | OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
     { $$ = method($1,$3,$6,$8); }
-    | error ';'
+    | error
     { }
     ;
 
@@ -287,7 +287,7 @@
     { $$ = string_const($1); }
     | BOOL_CONST
     { $$ = bool_const($1); }
-    | error ';'
+    | error
     { }
     ;
 

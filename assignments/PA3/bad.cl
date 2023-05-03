@@ -23,15 +23,30 @@ Class C inherits a {
 Class D inherts A {
 };
 
-(* error:  closing brace is missing *)
-Class E inherits A {
-;
-
 (* error:  feature list error *)
-Class F inherits A {
+Class E inherits A {
   x1;
   x2: Int;
   x3;
   X4: Int;
   x5: String;
 };
+
+(* error:  expression list error *)
+Class F inherits A {
+  x1: Int;
+  x2: Int;
+  m(): Int {
+    {
+      x1 <- 1;
+      x2 <-;
+      x2 3;
+      x1 <- x1 + x2;
+      4;
+    }
+  };
+};
+
+(* error:  closing brace is missing *)
+Class G inherits A {
+;
