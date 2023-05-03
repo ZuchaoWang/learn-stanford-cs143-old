@@ -27,3 +27,11 @@ Class D inherts A {
 Class E inherits A {
 ;
 
+(* error:  feature list error *)
+Class F inherits A {
+  x1;
+  x2: Int;
+  x3;
+  X4: Int;
+  x5: String;
+};

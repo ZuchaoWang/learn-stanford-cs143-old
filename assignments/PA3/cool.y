@@ -147,7 +147,16 @@
     %type <expression> let_suffix
     
     /* Precedence declarations go here. */
-    
+    %left IN
+    %right ASSIGN
+    %right NOT
+    %left LE '<' '='
+    %left '+' '-'
+    %left '*' '/'
+    %right ISVOID
+    %right '~'
+    %left '@'
+    %left '.'
     
     %%
     /* 
@@ -171,6 +180,8 @@
     { $$ = class_($2,idtable.add_string("Object"),$4, stringtable.add_string(curr_filename)); }
     | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
+    | error ';'
+    { }
     ;
     
     /* following are added by student */
@@ -281,6 +292,8 @@
     { $$ = nil_Expressions(); }
     | expressions expression ';'
     { $$ = append_Expressions($1,single_Expressions($2)); }
+    | error ';'
+    { }
     ;
 
     arguments
