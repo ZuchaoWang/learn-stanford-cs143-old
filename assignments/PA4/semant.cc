@@ -84,9 +84,10 @@ static void initialize_constants(void)
 
 
 ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
-
-    /* Fill this in */
-
+    classInfos = NULL;
+    install_basic_classes();
+    for(int i = classes->first(); classes->more(i); i = classes->next(i))
+      install_one_class(classes->nth(i));
 }
 
 void ClassTable::install_basic_classes() {
@@ -188,6 +189,49 @@ void ClassTable::install_basic_classes() {
 						      Str, 
 						      no_expr()))),
 	       filename);
+
+  install_one_class(Object_class);
+  install_one_class(IO_class);
+  install_one_class(Int_class);
+  install_one_class(Bool_class);
+  install_one_class(Str_class);
+}
+
+void ClassTable::install_one_class(Class_ c) {
+  ClassInfo* info = new ClassInfo();
+  c->register_class_info(info);
+  classInfos = new List(info, classInfos);
+}
+
+void class__class::register_class_info(ClassInfo* info) {
+  info->name = name;
+  info->parent = parent;
+  for(int i = features->first(); features->more(i); i = features->next(i))
+    features->nth(i)->register_class_info(info);
+}
+
+void method_class::register_class_info(ClassInfo* info) {
+  MethodInfo *methodInfo = new MethodInfo();
+  methodInfo->name = name;
+  methodInfo->retType = return_type;
+  info->methodInfos = new List(methodInfo, info->methodInfos);
+  int formal_count = formals->len();
+  for(int i = formals->first(); formals->more(i); i = formals->next(i))
+    formals->nth(formal_count-1-i)->register_class_info(info); // ugly hack to ensure formal order
+}
+
+void attr_class::register_class_info(ClassInfo* info) {
+  AttrInfo *attrInfo = new AttrInfo();
+  attrInfo->name = name;
+  attrInfo->type = type_decl;
+  info->attrInfos = new List(attrInfo, info->attrInfos);
+}
+
+void formal_class::register_class_info(ClassInfo* info) {
+  AttrInfo *attrInfo = new AttrInfo();
+  attrInfo->name = name;
+  attrInfo->type = type_decl;
+  info->methodInfos->hd()->argInfos = new List(attrInfo, info->methodInfos->hd()->argInfos);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -222,7 +266,41 @@ ostream& ClassTable::semant_error()
     return error_stream;
 } 
 
+void ClassTable::check_unique_var() {
+    check_unique_class();
+    check_unique_attr();
+    check_unique_method();
+    check_unique_formal();
+}
 
+void ClassTable::check_class_hierarchy() {
+    check_class_parent_exist();
+    check_class_acyclic();
+}
+
+void ClassTable::check_unique_class() {
+
+}
+
+void ClassTable::check_unique_attr() {
+
+}
+
+void ClassTable::check_unique_method() {
+
+}
+
+void ClassTable::check_unique_formal() {
+
+}
+
+void ClassTable::check_class_parent_exist() {
+
+}
+
+void ClassTable::check_class_acyclic() {
+  
+}
 
 /*   This is the entry point to the semantic checker.
 

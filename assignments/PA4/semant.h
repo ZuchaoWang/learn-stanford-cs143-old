@@ -19,11 +19,22 @@ typedef ClassTable *ClassTableP;
 // you like: it is only here to provide a container for the supplied
 // methods.
 
+
 class ClassTable {
 private:
   int semant_errors;
   void install_basic_classes();
+  void install_one_class(Class_ c);
   ostream& error_stream;
+  List<ClassInfo> *classInfos;
+
+  void check_unique_class();
+  void check_unique_attr();
+  void check_unique_method();
+  void check_unique_formal();
+
+  void check_class_parent_exist();
+  void check_class_acyclic();
 
 public:
   ClassTable(Classes);
@@ -31,6 +42,9 @@ public:
   ostream& semant_error();
   ostream& semant_error(Class_ c);
   ostream& semant_error(Symbol filename, tree_node *t);
+
+  void check_unique_var();
+  void check_class_hierarchy();
 };
 
 
