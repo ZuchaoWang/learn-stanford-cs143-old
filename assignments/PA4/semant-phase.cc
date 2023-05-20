@@ -11,9 +11,13 @@ char *curr_filename;
 void handle_flags(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
+  std::cout<<"blabla"<<std::endl;
   handle_flags(argc,argv);
+  std::cout<<"blibli"<<std::endl;
   ast_yyparse();
+  std::cout<<"blublu"<<std::endl;
   ast_root->semant();
+  std::cout<<"bloblo"<<std::endl;
   ast_root->dump_with_types(cout,0);
 }
 

@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include "semant.h"
 #include "utilities.h"
+#include "cycle.h"
 
 
 extern int semant_debug;
@@ -201,7 +202,7 @@ void ClassTable::install_one_class(Class_ c) {
   ClassInfo* info = new ClassInfo();
   info->class_ = c;
   c->register_class_info(info);
-  classInfos = new List(info, classInfos);
+  classInfos = new List<ClassInfo>(info, classInfos);
 }
 
 void class__class::register_class_info(ClassInfo* info) {
@@ -215,7 +216,7 @@ void method_class::register_class_info(ClassInfo* info) {
   MethodInfo *methodInfo = new MethodInfo();
   methodInfo->name = name;
   methodInfo->retType = return_type;
-  info->methodInfos = new List(methodInfo, info->methodInfos);
+  info->methodInfos = new List<MethodInfo>(methodInfo, info->methodInfos);
   int formal_count = formals->len();
   for(int i = formals->first(); formals->more(i); i = formals->next(i))
     formals->nth(formal_count-1-i)->register_class_info(info); // ugly hack to ensure formal order
@@ -225,14 +226,14 @@ void attr_class::register_class_info(ClassInfo* info) {
   AttrInfo *attrInfo = new AttrInfo();
   attrInfo->name = name;
   attrInfo->type = type_decl;
-  info->attrInfos = new List(attrInfo, info->attrInfos);
+  info->attrInfos = new List<AttrInfo>(attrInfo, info->attrInfos);
 }
 
 void formal_class::register_class_info(ClassInfo* info) {
   AttrInfo *attrInfo = new AttrInfo();
   attrInfo->name = name;
   attrInfo->type = type_decl;
-  info->methodInfos->hd()->argInfos = new List(attrInfo, info->methodInfos->hd()->argInfos);
+  info->methodInfos->hd()->argInfos = new List<AttrInfo>(attrInfo, info->methodInfos->hd()->argInfos);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -381,7 +382,31 @@ void ClassTable::check_class_parent_exist() {
 }
 
 void ClassTable::check_class_acyclic() {
-  
+  int vn = list_length(classInfos)+1;
+  CycleDetector cd = CycleDetector(vn); // +1 for No_class
+  List<ClassInfo> *cl1, *cl2;
+  ClassInfo *ci1, *ci2;
+  int index1, index2;
+  index1 = 0;
+  for (cl1 = classInfos; cl1 != NULL; cl1 = cl1->tl()) {
+    index1++;
+    ci1 = cl1->hd();
+    index2 = 0;
+    if (ci1->parent != No_class) {
+      for (cl2 = classInfos; cl2 != NULL; cl2 = cl2->tl()) {
+        index2++;
+        ci2 = cl2->hd();
+        if (ci2->name == ci1->parent) {
+          break;
+        }
+      }
+    }
+    assert(index2 < vn);
+    cd.addEdge(index2, index1);
+  }
+  if (cd.isCyclic()) {
+    semant_error();
+  }
 }
 
 /*   This is the entry point to the semantic checker.
@@ -402,11 +427,15 @@ void program_class::semant()
     initialize_constants();
 
     /* ClassTable constructor may do some semantic analysis */
+    std::cout<<"1"<<std::endl;
     ClassTable *classtable = new ClassTable(classes);
 
     /* some semantic analysis code may go here */
+    std::cout<<"2"<<std::endl;
     classtable->check_unique_var();
+    std::cout<<"3"<<std::endl;
     classtable->check_class_hierarchy();
+    std::cout<<"4"<<std::endl;
     if (classtable->errors()) {
       cerr << "Compilation halted due to static semantic errors." << endl;
       exit(1);
@@ -418,4 +447,4 @@ void program_class::semant()
     }
 }
 
-
+int curr_lineno = 1;
