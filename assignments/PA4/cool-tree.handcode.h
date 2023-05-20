@@ -9,7 +9,6 @@
 #include "cool.h"
 #include "stringtab.h"
 #include "list.h"
-#include "pair.h"
 #define yylineno curr_lineno;
 extern int yylineno;
 
@@ -70,11 +69,13 @@ public:
 
 class ClassInfo {
 public:
+  Class_ class_;
   Symbol name;
   Symbol parent;
   List<AttrInfo> *attrInfos;
   List<MethodInfo> *methodInfos;
   ClassInfo() {
+    class_ = NULL;
     name = NULL;
     parent = NULL;
     attrInfos = NULL;

@@ -199,6 +199,7 @@ void ClassTable::install_basic_classes() {
 
 void ClassTable::install_one_class(Class_ c) {
   ClassInfo* info = new ClassInfo();
+  info->class_ = c;
   c->register_class_info(info);
   classInfos = new List(info, classInfos);
 }
@@ -279,23 +280,104 @@ void ClassTable::check_class_hierarchy() {
 }
 
 void ClassTable::check_unique_class() {
-
+  List<ClassInfo> *cl1, *cl2;
+  ClassInfo *ci1, *ci2;
+  for (cl1 = classInfos; cl1 != NULL; cl1 = cl1->tl()) {
+    ci1 = cl1->hd();
+    for (cl2 = classInfos; cl2 != cl1; cl2 = cl2->tl()) {
+      ci2 = cl2->hd();
+      if (ci1->name == ci2->name) {
+        semant_error(ci2->class_);
+      }
+    }
+  }
 }
 
 void ClassTable::check_unique_attr() {
-
+  List<ClassInfo> *cl;
+  ClassInfo *ci;
+  List<AttrInfo> *al1, *al2;
+  AttrInfo *ai1, *ai2;
+  for (cl = classInfos; cl != NULL; cl = cl->tl()) {
+    ci = cl->hd();
+    for (al1 = ci->attrInfos; al1 != NULL; al1 = al1->tl()) {
+      ai1 = al1->hd();
+      for (al2 = ci->attrInfos; al2 != al1; al2 = al2->tl()) {
+        ai2 = al2->hd();
+        if (ai1->name == ai2->name) {
+          semant_error(ci->class_);
+        }
+      }
+    }
+  }
 }
 
 void ClassTable::check_unique_method() {
-
+  List<ClassInfo> *cl;
+  ClassInfo *ci;
+  List<MethodInfo> *ml1, *ml2;
+  MethodInfo *mi1, *mi2;
+  for (cl = classInfos; cl != NULL; cl = cl->tl()) {
+    ci = cl->hd();
+    for (ml1 = ci->methodInfos; ml1 != NULL; ml1 = ml1->tl()) {
+      mi1 = ml1->hd();
+      for (ml2 = ci->methodInfos; ml2 != ml1; ml2 = ml2->tl()) {
+        mi2 = ml2->hd();
+        if (mi1->name == mi2->name) {
+          semant_error(ci->class_);
+        }
+      }
+    }
+  }
 }
 
 void ClassTable::check_unique_formal() {
-
+  List<ClassInfo> *cl;
+  ClassInfo *ci;
+  List<MethodInfo> *ml;
+  MethodInfo *mi;
+  List<AttrInfo> *al1, *al2;
+  AttrInfo *ai1, *ai2;
+  for (cl = classInfos; cl != NULL; cl = cl->tl()) {
+    ci = cl->hd();
+    for (ml = ci->methodInfos; ml != NULL; ml = ml->tl()) {
+      mi = ml->hd();
+      for (al1 = mi->argInfos; al1 != NULL; al1 = al1->tl()) {
+        ai1 = al1->hd();
+        for (al2 = mi->argInfos; al2 != al1; al2 = al2->tl()) {
+          ai2 = al2->hd();
+          if (ai1->name == ai2->name) {
+            semant_error(ci->class_);
+          }
+        }
+      }
+    }
+  }
 }
 
 void ClassTable::check_class_parent_exist() {
-
+  List<ClassInfo> *cl1, *cl2;
+  ClassInfo *ci1, *ci2;
+  bool found;
+  for (cl1 = classInfos; cl1 != NULL; cl1 = cl1->tl()) {
+    ci1 = cl1->hd();
+    if (ci1->name == ci1->parent) { // forbid self inheritance
+      semant_error(ci1->class_);
+    }
+    if (ci1->parent != No_class) { // must find parent
+      found = false;
+      for (cl2 = classInfos; cl2 != NULL; cl2 = cl2->tl()) {
+        ci2 = cl2->hd();
+        if (ci2->name == ci1->parent) {
+          found = true;
+          break;
+        }
+      }
+      if (found == false) {
+        semant_error(ci1->class_);
+      }
+    }
+  }
 }
 
 void ClassTable::check_class_acyclic() {
@@ -323,10 +405,16 @@ void program_class::semant()
     ClassTable *classtable = new ClassTable(classes);
 
     /* some semantic analysis code may go here */
+    classtable->check_unique_var();
+    classtable->check_class_hierarchy();
+    if (classtable->errors()) {
+      cerr << "Compilation halted due to static semantic errors." << endl;
+      exit(1);
+    }
 
     if (classtable->errors()) {
-	cerr << "Compilation halted due to static semantic errors." << endl;
-	exit(1);
+      cerr << "Compilation halted due to static semantic errors." << endl;
+      exit(1);
     }
 }
 
